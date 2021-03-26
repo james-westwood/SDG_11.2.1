@@ -73,9 +73,24 @@ class Data_obj():
         feather.write_feather(self.pd_df, self.feather_path)
 
     def feather_to_pd_df(self):
+        print("Converting feather to Pandas")
         self.pd_df = pd.read_feather(self.feather_path)
 
+    def geo_df_from_geospatialfile(self, path_to_file):
+        """Function to create a Geo-dataframe from a geospatial
+            (geojson, shp) file. The process goes via Pandas.s
 
+            Arguments:
+                path_to_file (string): path to the geojson, shp and other
+                    geospatial data files
+
+            Returns:
+                Geopandas Dataframe
+                """
+        geo_df = gpd.read_file(path_to_file)
+        if geo_df.crs != self.crs:
+            geo_df = geo_df.to_crs(self.crs)
+        self.geo_df = geo_df
 
     def pd_df_to_gpd(self, geom_x, geom_y):
         """Makes a geo dataframe from Pandas dataframe.
@@ -94,19 +109,7 @@ class Data_obj():
         geo_df.crs = self.crs
         self.gpdf = geo_df.to_crs(self.crs)
     
-data = Data_obj()
-if data.persistent_exists():
-    data.feather_to_pd_df()
-else:
-    data.dl_zip()
-    data.zip_extract_csv()
-    cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
-    data.csv_to_pd_df(delim=',', cols=cols)
-    data.pd_to_feather()
-geom_x='Easting'
-geom_y='Northing'
-data.pd_df_to_gpd(geom_x, geom_y)
-print(data.gpdf)
+
 
 
 
@@ -151,18 +154,4 @@ print(data.gpdf)
 
 
 
-def geo_df_from_geospatialfile(path_to_file, crs='epsg:27700'):
-    """Function to create a Geo-dataframe from a geospatial
-        (geojson, shp) file. The process goes via Pandas.s
 
-        Arguments:
-            path_to_file (string): path to the geojson, shp and other
-                geospatial data files
-
-        Returns:
-            Geopandas Dataframe
-            """
-    geo_df = gpd.read_file(path_to_file)
-    if geo_df.crs != crs:
-        geo_df = geo_df.to_crs('epsg:27700')
-    return geo_df

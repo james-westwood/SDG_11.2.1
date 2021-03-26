@@ -34,28 +34,29 @@ csv_path = os.path.join(data_dir, csv_nm)
 
 # Get the data 
 
-data = Data_obj()
-if data.persistent_exists():
-    data.feather_to_pd_df()
+stops  = Data_obj()
+if stops.persistent_exists():
+    stops.feather_to_pd_df()
 else:
     # Download the naptan zip
-    data.dl_zip()
+    stops.dl_zip()
     # Extract the csv data from the zip
-    data.zip_extract_csv()
+    stops.zip_extract_csv()
     # Create the geo dataframe with the stops data
     cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
-    data.csv_to_pd_df(delim=',', cols=cols)
-    data.pd_to_feather()
-data.pd_df_to_gpd(geom_x='Easting', geom_y='Northing')
-print(data.gpdf)
-
-
+    stops.csv_to_pd_df(delim=',', cols=cols)
+    stops.pd_to_feather()
+stops.pd_df_to_gpd(geom_x='Easting', geom_y='Northing')
+stops_geo_df = stops.gpdf
+print(stops_geo_df.head())
 
 
 # Getting the Lower Super Output Area for the UK into a dataframe
 uk_LSOA_shp_file = "Lower_Layer_Super_Output_Areas__December_2011__Boundaries_EW_BGC.shp"
 full_path = os.path.join(os.getcwd(), "data", "LSOA_shp", uk_LSOA_shp_file)
-uk_LSOA_df = geo_df_from_geospatialfile(path_to_file=full_path)
+uk_LSOA_df = Data_obj()
+uk_LSOA_df.geo_df_from_geospatialfile(path_to_file=full_path)
+uk_LSOA_df = uk_LSOA_df.geo_df
 
 # Get a polygon of Birmingham based on the Location Code
 just_birmingham_poly = (get_polygons_of_loccode(
