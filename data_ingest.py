@@ -8,11 +8,11 @@ import requests
 from shapely.geometry import Point
 from zipfile import ZipFile
 from io import BytesIO
+import pyarrow.feather as feather
 
 
 class Data_obj():
     # Class variables
-    CWD = os.getcwd()
 
     def __init__(self):
         self.crs = 'EPSG:27700'
@@ -20,6 +20,7 @@ class Data_obj():
         self.data_dir = os.path.join(self.cwd,'data')
         self.zip_name = "Napatan.zip"
         self.zip_link = "http://naptan.app.dft.gov.uk/DataRequest/Naptan.ashx?format=csv"
+        self.feather_path = os.path.join(self.data_dir, "test.file")
     
     def dl_zip(self):
         """
@@ -54,6 +55,16 @@ class Data_obj():
                         quotechar='"',
                         usecols=cols)
 
+    def pd_to_feather(self):
+        """
+        Writes a Pandas dataframe to feather for quick reading and retrieval later.
+        """
+        print(f"Writing Pandas dataframe to feather at {self.feather_path}")
+        feather.write_feather(self.pd_df, self.feather_path)
+
+    def feather_to_pd_df(self):
+        self.pd_df = pd.read_feather(self.feather_path)
+
     def pd_df_to_gpd(self, geom_x, geom_y):
         """Makes a geo dataframe from Pandas dataframe.
             self.crs (string): the coordinate reference system required
@@ -77,6 +88,8 @@ print(type(data))
 data.zip_extract_csv()
 cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
 data.csv_to_pd_df(delim=',', cols=cols)
+data.pd_to_feather()
+data.feather_to_pd_df()
 geom_x='Easting'
 geom_y='Northing'
 data.pd_df_to_gpd(geom_x, geom_y)
@@ -97,8 +110,7 @@ print(data.gpdf)
 
 
 
-#     def feather_to_pd_df(self):
-#         pass
+
 
 
 
@@ -112,8 +124,7 @@ print(data.gpdf)
 #     def shp_to_gpd_df(self):
 #         pass
 
-#     def data_to_feather(self):
-#         pass
+
 
 # def dl_csv_make_df(csv_nm, csv_path, zip_name, zip_path, data_dir):
 #     """
