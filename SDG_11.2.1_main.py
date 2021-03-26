@@ -32,25 +32,27 @@ zip_path = os.path.join(data_dir, zip_name)
 csv_nm = 'Stops.csv'
 csv_path = os.path.join(data_dir, csv_nm)
 
-# Download the zip file and extract the stops csv
-_ = dl_csv_make_df(csv_nm,
-                   csv_path,
-                   zip_name,
-                   zip_path,
-                   zip_link,
-                   data_dir)
+# Get the data 
 
-# Create the geo dataframe with the stoppoly_from_polyss data
-cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
+data = Data_obj()
+if data.persistent_exists():
+    data.feather_to_pd_df()
+else:
+    # Download the naptan zip
+    data.dl_zip()
+    # Extract the csv data from the zip
+    data.zip_extract_csv()
+    # Create the geo dataframe with the stops data
+    cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
+    data.csv_to_pd_df(delim=',', cols=cols)
+    data.pd_to_feather()
+data.pd_df_to_gpd(geom_x='Easting', geom_y='Northing')
+print(data.gpdf)
 
-stops_geo_df = (geo_df_from_csv(path_to_csv=csv_path,
-                                delim=',',
-                                geom_x='Easting',
-                                geom_y='Northing',
-                                cols=cols,
-                                crs=DEFAULT_CRS))
 
-# # Getting the Lower Super Output Area for the UK into a dataframe
+
+
+# Getting the Lower Super Output Area for the UK into a dataframe
 uk_LSOA_shp_file = "Lower_Layer_Super_Output_Areas__December_2011__Boundaries_EW_BGC.shp"
 full_path = os.path.join(os.getcwd(), "data", "LSOA_shp", uk_LSOA_shp_file)
 uk_LSOA_df = geo_df_from_geospatialfile(path_to_file=full_path)
