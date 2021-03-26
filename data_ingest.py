@@ -40,21 +40,47 @@ class Data_obj():
             print(f"Extracting {CSV_NM} to {self.data_dir}")
             self.csv = the_zip.extract(CSV_NM, path=None)
 
+    def csv_to_pd_df(self, delim, cols):
+        """Function to create a Pandas dataframe from a csv file.
 
-            
-        
-        # csv_path = os.path.join(self.data_dir, csv_nm)
-        # # Open the zip file and extract
-        
-        # ZipFile.extract(csv_nm, path=self.data_dir)
+            Arguments:
+                delim (string): the seperator in the csv file e.g. "," or "\t"
+        """
+        print("Converting csv data to Pandas DataFrame")
+        self.pd_df = pd.read_csv(self.csv,
+                        delim,
+                        engine="python",
+                        error_bad_lines=False,
+                        quotechar='"',
+                        usecols=cols)
 
+    def pd_df_to_gpd(self, geom_x, geom_y):
+        """Makes a geo dataframe from Pandas dataframe.
+            self.crs (string): the coordinate reference system required
+
+            Arguments:
+                geom_x (string):name of the column that contains the longitude data
+                geom_y (string):name of the column that contains the latitude data
+                
+            Returns:
+                Geopandas Dataframe"""
+        geometry = [Point(xy) for xy in zip(self.pd_df[geom_x], self.pd_df[geom_y])]
+        print("Converting Pandas DataFrame to GeoPandas DataFrame")
+        geo_df = gpd.GeoDataFrame(self.pd_df, geometry=geometry)
+        # Ensuring the CRS is in the geo df is correct 
+        geo_df.crs = self.crs
+        self.gpdf = geo_df.to_crs(self.crs)
     
-
 data = Data_obj()
 data.dl_zip()
 print(type(data))
 data.zip_extract_csv()
-print(data.csv)
+cols = ['NaptanCode', 'CommonName', 'Easting', 'Northing']
+data.csv_to_pd_df(delim=',', cols=cols)
+geom_x='Easting'
+geom_y='Northing'
+data.pd_df_to_gpd(geom_x, geom_y)
+print(data.gpdf)
 
 
 
@@ -76,33 +102,12 @@ print(data.csv)
 
 
 
-#     def csv_to_pd_df(self):
-#         """Function to create a Geo-dataframe from a csv file.
-#             The process goes via Pandas
 
-#             Arguments:
-#                 path_to_csv (string): path to the txt/csv containing geo data
-#                     to be read
-#                 delimiter (string): the seperator in the csv file e.g. "," or "\t"
-#                 geom_x (string):name of the column that contains the longitude data
-#                 geom_y (string):name of the column that contains the latitude data
-#                 crs (string): the coordinate reference system required
-#             Returns:
-#                 Geopandas Dataframe
-#         """
-#         self.pd_df = pd.read_csv(path_to_csv,
-#                         delim,
-#                         engine="python",
-#                         error_bad_lines=False,
-#                         quotechar='"',
-#                         usecols=cols)
-#         return self.pd_df
 
 #     def json_to_pd_df(self):
 #         pass
 
-#     def pd_df_to_gpd(self):
-#         pass
+
 
 #     def shp_to_gpd_df(self):
 #         pass
@@ -127,10 +132,7 @@ print(data.csv)
 # def geo_df_from_csv(path_to_csv, geom_x, geom_y, cols, crs, delim=','):
 
     
-#     geometry = [Point(xy) for xy in zip(pd_df[geom_x], pd_df[geom_y])]
-#     geo_df = gpd.GeoDataFrame(pd_df, geometry=geometry)
-#     geo_df.crs = crs
-#     geo_df.to_crs(crs, inplace=True)
+#     
 #     return geo_df
 
 
